@@ -1,0 +1,74 @@
+#!/bin/sh
+# pg-backup [OPTIONS]
+
+# OPTIONS
+# -c=conffile
+# --backup-user=
+
+pgbloadConfig() {
+
+    _pgbfileConfig=
+
+    while [ -n "$1" ]; do
+        case "${1}" in
+        -c)
+            _pgbfileConfig=$2
+            shift 2
+            continue
+            ;;
+        --backup-user | --pg-hostname | --username | --backup-dir | --backup-databases | --restore-databases | --backup-files | --restore-files)
+            # echo "parametr $1 is $2"
+            # заменить -- _pg заменить - на _
+            eval "$(echo "$1" | sed s/--/_pgb_/ | sed s/-/_/)"="$2"
+            shift 2
+            continue
+            ;;
+        *)
+            echo "incorrect parameter $1" 1>&2
+            return 1
+            ;;
+        esac
+
+        shift 1
+    done
+
+    if [ -z "$_pgbfileConfig" ]; then
+        _pgbStriptpath=$(cd "${0%/*}" && pwd -P)
+        . "$_pgbStriptpath"/pg-backup.conf
+    elif [ -r "$_pgbfileConfig" ]; then
+        . "$_pgbfileConfig"
+    fi
+
+    BACKUP_USER=${_pgb_backup_user:-$BACKUP_USER}
+    PG_HOSTNAME=${_pgb_pg_hostname:-$PG_HOSTNAME}
+    USERNAME=${_pgb_username:-$USERNAME}
+    BACKUP_DIR=${_pgb_backup_dir:-$BACKUP_DIR}
+    BACKUP_DATABASES=${_pgb_backup_databases:-$BACKUP_DATABASES}
+    RESTORE_DATABASES=${_pgb_restore_databases:-$RESTORE_DATABASES}
+    BACKUP_FILES=${_pgb_backup_files:-$BACKUP_FILES}
+    RESTORE_FILES=${_pgb_restore_files:-$RESTORE_FILES}
+
+    # Make sure we're running as the required backup user
+    if [ "$BACKUP_USER" != "" -a "$(id -un)" != "$BACKUP_USER" ]; then
+        echo "This script must be run as $BACKUP_USER. Exiting." 1>&2
+        exit 1
+    fi
+
+    if [ ! $PG_HOSTNAME ]; then
+        PG_HOSTNAME="localhost"
+    fi
+
+    if [ ! $USERNAME ]; then
+        USERNAME="postgres"
+    fi
+
+    echo "BACKUP_USER" "$BACKUP_USER"
+    echo "PG_HOSTNAME" "$PG_HOSTNAME"
+    echo "USERNAME" "$USERNAME"
+    echo "BACKUP_DIR" "$BACKUP_DIR"
+    echo "BACKUP_DATABASES" "$BACKUP_DATABASES"
+    echo "RESTORE_DATABASES" "$RESTORE_DATABASES"
+    echo "BACKUP_FILES" "$BACKUP_FILES"
+    echo "RESTORE_FILES" "$RESTORE_FILES"
+
+}
