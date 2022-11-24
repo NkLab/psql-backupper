@@ -3,10 +3,15 @@
 # set -o nounset
 set -o errexit
 
-. ./pg-func
+scriptPath=$(cd "${0%/*}" && pwd -P)
+. "$scriptPath"/pg-func
 
 if ! pgbloadConfig "$@"; then
     exit 1
+fi
+
+if [ ! -d "$BACKUP_DIR" ]; then
+    mkdir "$BACKUP_DIR"
 fi
 
 echo "Performing backups $BACKUP_DATABASES "
@@ -31,13 +36,11 @@ for baseName in $(echo "$BACKUP_DATABASES" | sed 's/,/ /'); do
 
     echo "base - $baseName will be backup to $nameBackup"
 
-
     if ! pg_dump -h "$PG_HOSTNAME" -U "$USERNAME" "$baseName" | gzip >"$nameBackup".gz.in_progress; then
         echo "[!!ERROR!!] Failed to backup database schema of $DATABASE" 1>&2
     else
         mv "$nameBackup".gz.in_progress "$nameBackup".gz
     fi
-
 
     index=$((index + 1))
 
