@@ -14,7 +14,7 @@ COPY ./scripts /opt
 
 WORKDIR /opt
 
-RUN mkdir backup-data
+RUN mkdir backup-data && mkdir backup-data/data
 # VOLUME ["/opt/backup-data"]
 
 
