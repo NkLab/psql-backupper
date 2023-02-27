@@ -3,7 +3,8 @@
 # set -o nounset
 set -o errexit
 
-. ./pg-func
+scriptPath=$(cd "${0%/*}" && pwd -P)
+. "$scriptPath"/pg-func
 
 if ! pgbloadConfig "$@"; then
     exit 1
