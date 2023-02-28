@@ -55,7 +55,7 @@ pgbloadConfig() {
     fi
 
     if [ ! $PG_HOSTNAME ]; then
-        PG_HOSTNAME="localhost"
+        PG_HOSTNAME="/tmp"
     fi
 
     if [ ! $USERNAME ]; then
